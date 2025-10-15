@@ -127,7 +127,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         try {
             const userDocRef = doc(db, "usuarios", userId);
             const userDoc = await getDoc(userDocRef);
-            
+
             if (userDoc.exists()) {
                 const userData = userDoc.data();
                 // Tenta buscar o telefone formatado primeiro, depois o telefone apenas números
@@ -145,13 +145,12 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
 
         setCarregandoHorarios(true);
         try {
-            // Converte a data selecionada para formato de consulta
             const dataObj = new Date(dataSelecionada + 'T00:00:00');
             const inicioDia = new Date(dataObj);
             const fimDia = new Date(dataObj);
             fimDia.setHours(23, 59, 59, 999);
 
-            // Busca agendamentos para a data selecionada
+            // Busca agendamentos já marcados
             const agendamentosRef = collection(db, "agendamentos");
             const q = query(
                 agendamentosRef,
@@ -162,7 +161,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
             const querySnapshot = await getDocs(q);
             const horariosOcupados = new Set();
 
-            // Extrai os horários já agendados
             querySnapshot.forEach((doc) => {
                 const agendamento = doc.data();
                 const dataHora = agendamento.dataHora.toDate();
@@ -171,11 +169,23 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                 horariosOcupados.add(hora);
             });
 
-            // Cria array de horários disponíveis
-            const disponiveis = horariosFixos.map(hora => ({
-                hora,
-                disponivel: !horariosOcupados.has(hora)
-            }));
+            // === NOVA LÓGICA: bloquear horários passados se for hoje ===
+            const hoje = new Date();
+            const ehHoje = dataObj.toDateString() === hoje.toDateString();
+
+            const disponiveis = horariosFixos.map(hora => {
+                const [horaStr, minutoStr] = hora.split(':').map(Number);
+                const horarioDate = new Date(dataObj);
+                horarioDate.setHours(horaStr, minutoStr, 0, 0);
+
+                // Se for hoje e o horário já passou, marcar como indisponível
+                const horarioJaPassou = ehHoje && horarioDate < hoje;
+
+                return {
+                    hora,
+                    disponivel: !horariosOcupados.has(hora) && !horarioJaPassou
+                };
+            });
 
             setHorariosDisponiveis(disponiveis);
         } catch (error) {
