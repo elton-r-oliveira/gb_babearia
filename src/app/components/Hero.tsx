@@ -1,13 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import ModalAgendamento from "./ModalAgendamento";
+import ModalLogin from "./ModalLogin";
 
 export default function Hero() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalAgendamentoOpen, setIsModalAgendamentoOpen] = useState(false);
+  const [isModalLoginOpen, setIsModalLoginOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  useEffect(() => {
+    // Verifica se usuário está logado
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const openAgendamentoModal = () => {
+    if (!user) {
+      setIsModalLoginOpen(true);
+    } else {
+      setIsModalAgendamentoOpen(true);
+    }
+  };
+
+  const closeAgendamentoModal = () => setIsModalAgendamentoOpen(false);
+  const closeLoginModal = () => setIsModalLoginOpen(false);
+
+  const handleLoginSuccess = () => {
+    // Após login bem sucedido, fecha o modal de login
+    setIsModalLoginOpen(false);
+  };
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -39,7 +65,7 @@ export default function Hero() {
           </p>
           <div className="flex gap-4 justify-center">
             <button
-              onClick={openModal}
+              onClick={openAgendamentoModal}
               className="bg-yellow-500 text-black px-6 py-2 rounded-md hover:bg-yellow-600 transition"
             >
               Agendar Horário
@@ -52,7 +78,7 @@ export default function Hero() {
               Nossos Serviços
             </a>
           </div>
-          <p className="mt-10 text-sm text-yellow-500 flex items-center justify-center gap-2 cursor-pointer">
+          {/* <p className="mt-10 text-sm text-yellow-500 flex items-center justify-center gap-2 cursor-pointer">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -68,11 +94,25 @@ export default function Hero() {
               />
             </svg>
             (21) 4002-8922
-          </p>
+          </p> */}
         </div>
       </section>
 
-      <ModalAgendamento isOpen={isModalOpen} onClose={closeModal} />
+      {/* Modais */}
+      <ModalAgendamento
+        isOpen={isModalAgendamentoOpen}
+        onClose={closeAgendamentoModal}
+      />
+
+      <ModalLogin
+        isOpen={isModalLoginOpen}
+        onClose={closeLoginModal}
+        onSwitchToCadastro={() => {
+          // Aqui você pode adicionar lógica para abrir modal de cadastro se quiser
+          console.log("Abrir cadastro do Hero");
+        }}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </>
   );
 }

@@ -6,6 +6,7 @@ export default function Footer() {
         <footer id="contato" className="bg-[#0a0a0a] border-t border-neutral-800 py-16 px-6 md:px-16 text-white">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+
                     {/* Coluna 1 - Sobre */}
                     <div>
                         <h3 className="text-2xl font-bold mb-4 text-yellow-500">GB Barbershop</h3>
@@ -14,13 +15,13 @@ export default function Footer() {
                         </p>
                         <div className="flex gap-4">
                             <a
-                                href="#"
+                                href="https://www.instagram.com/"
                                 className="bg-[#1a1a1a] p-3 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-colors"
                             >
                                 <FaInstagram className="w-5 h-5 text-gray-300 hover:text-yellow-500 transition-colors" />
                             </a>
                             <a
-                                href="#"
+                                href="https://www.facebook.com/?locale=pt_BR"
                                 className="bg-[#1a1a1a] p-3 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-colors"
                             >
                                 <FaFacebook className="w-5 h-5 text-gray-300 hover:text-yellow-500 transition-colors" />

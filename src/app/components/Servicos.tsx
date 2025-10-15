@@ -1,8 +1,8 @@
-import { 
-  ScissorsIcon, 
-  SparklesIcon, 
-  PaintBrushIcon, 
-  WrenchScrewdriverIcon 
+import {
+  ScissorsIcon,
+  SparklesIcon,
+  PaintBrushIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 
 export default function Servicos() {
@@ -34,7 +34,7 @@ export default function Servicos() {
   ];
 
   return (
-    <section id="servicos" className="bg-[#0f0f0f] py-24 px-6 md:px-16 text-white">
+    <section id="servicos" className="bg-[#212121] py-24 px-6 md:px-16 text-white">
       <div className="max-w-7xl mx-auto">
         {/* Cabeçalho */}
         <div className="text-center mb-16">
@@ -47,7 +47,7 @@ export default function Servicos() {
         {/* Grid de Serviços */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {servicos.map((servico, index) => (
-            <div 
+            <div
               key={index}
               className="bg-[#1a1a1a] border border-neutral-800 rounded-lg p-6 hover:border-yellow-500 transition-colors duration-300 group text-center flex flex-col h-full"
             >
@@ -55,7 +55,7 @@ export default function Servicos() {
               <div className="flex justify-center mb-4">
                 {servico.icone}
               </div>
-              
+
               {/* Conteúdo do Card */}
               <div className="flex flex-col flex-grow">
                 <h3 className="text-xl font-bold mb-3 text-white group-hover:text-yellow-500 transition-colors duration-300">
@@ -64,7 +64,7 @@ export default function Servicos() {
                 <p className="text-gray-300 mb-6 leading-relaxed flex-grow">
                   {servico.descricao}
                 </p>
-                
+
                 {/* Linha e Preço - Sempre na base */}
                 <div className="mt-auto">
                   <div className="border-t border-neutral-700 pt-4">
