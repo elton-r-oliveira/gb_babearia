@@ -15,14 +15,37 @@ interface ModalCadastroProps {
 export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCadastroSuccess }: ModalCadastroProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const formatarTelefone = (valor: string) => {
+    // Remove tudo que não é número
+    const apenasNumeros = valor.replace(/\D/g, '');
+    
+    // Formata o telefone: (00) 00000-0000
+    if (apenasNumeros.length <= 10) {
+      return apenasNumeros
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+      return apenasNumeros
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+    }
+  };
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valorFormatado = formatarTelefone(e.target.value);
+    setTelefone(valorFormatado);
+  };
+
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!nome || !email || !senha || !confirmarSenha) {
+    if (!nome || !email || !telefone || !senha || !confirmarSenha) {
       alert("Preencha todos os campos!");
       return;
     }
@@ -37,6 +60,13 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
       return;
     }
 
+    // Validação básica de telefone (pelo menos 10 dígitos)
+    const apenasNumerosTelefone = telefone.replace(/\D/g, '');
+    if (apenasNumerosTelefone.length < 10) {
+      alert("Por favor, insira um telefone válido!");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -48,6 +78,8 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
       await setDoc(doc(db, "usuarios", user.uid), {
         nome,
         email,
+        telefone: apenasNumerosTelefone, // Salva apenas os números
+        telefoneFormatado: telefone, // Salva o formato bonito também
         criadoEm: serverTimestamp(),
       });
 
@@ -114,6 +146,21 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2 text-sm font-medium">
+              Telefone
+            </label>
+            <input
+              type="tel"
+              placeholder="(00) 00000-0000"
+              value={telefone}
+              onChange={handleTelefoneChange}
+              className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+              required
+              maxLength={15}
             />
           </div>
 

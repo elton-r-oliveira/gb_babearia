@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
-import { addDoc, collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 import {
     ScissorsIcon,
@@ -61,7 +61,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
             id: "corte-cabelo",
             titulo: "Corte de Cabelo",
             descricao: "Cortes modernos e clássicos executados por profissionais experientes",
-            preco: "R$ 40,00", // Corrigido: removi a vírgula extra
+            preco: "R$ 40,00",
             icone: <ScissorsIcon className="w-8 h-8" />,
             duracao: "30 min"
         },
@@ -98,14 +98,13 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
             duracao: "45 min"
         },
         {
-            id: "sobrancelha", // Novo serviço com ID único
+            id: "sobrancelha",
             titulo: "Design de Sobrancelha",
             descricao: "Design profissional de sobrancelhas para realçar sua expressão",
             preco: "R$ 25,00",
             icone: <SparklesIcon className="w-8 h-8" />,
             duracao: "20 min"
         }
-        // REMOVIDO: O segundo "Tratamentos" duplicado
     ];
 
     // Verifica se usuário está logado
@@ -122,6 +121,24 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
             carregarHorariosDisponiveis();
         }
     }, [dataSelecionada]);
+
+    // Função para buscar o telefone do usuário
+    const buscarTelefoneUsuario = async (userId: string): Promise<string> => {
+        try {
+            const userDocRef = doc(db, "usuarios", userId);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                // Tenta buscar o telefone formatado primeiro, depois o telefone apenas números
+                return userData.telefoneFormatado || userData.telefone || "";
+            }
+            return "";
+        } catch (error) {
+            console.error("Erro ao buscar telefone do usuário:", error);
+            return "";
+        }
+    };
 
     const carregarHorariosDisponiveis = async () => {
         if (!dataSelecionada) return;
@@ -231,10 +248,14 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         setLoading(true);
 
         try {
+            // Busca o telefone do usuário
+            const usuarioTelefone = await buscarTelefoneUsuario(user.uid);
+
             await addDoc(collection(db, "agendamentos"), {
                 usuarioId: user.uid,
                 usuarioEmail: user.email,
                 usuarioNome: user.displayName || "Cliente",
+                usuarioTelefone: usuarioTelefone, // AQUI ESTÁ O CAMPO QUE FALTAVA
                 servico: servicoSelecionado.titulo,
                 preco: servicoSelecionado.preco,
                 duracao: servicoSelecionado.duracao,
@@ -340,7 +361,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                                             {servicos.map((servicoItem) => (
                                                 <div
-                                                    key={servicoItem.id} // Agora cada ID é único
+                                                    key={servicoItem.id}
                                                     onClick={() => handleSelecionarServico(servicoItem)}
                                                     className={`bg-neutral-700 border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:border-yellow-500 group ${servicoSelecionado?.id === servicoItem.id
                                                         ? 'border-yellow-500 bg-yellow-500/10'
