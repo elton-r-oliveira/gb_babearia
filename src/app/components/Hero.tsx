@@ -5,10 +5,12 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import ModalAgendamento from "./ModalAgendamento";
 import ModalLogin from "./ModalLogin";
+import ModalCadastro from "./ModalCadastro"; // Importe o modal de cadastro
 
 export default function Hero() {
   const [isModalAgendamentoOpen, setIsModalAgendamentoOpen] = useState(false);
   const [isModalLoginOpen, setIsModalLoginOpen] = useState(false);
+  const [isModalCadastroOpen, setIsModalCadastroOpen] = useState(false); // Novo estado
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -29,10 +31,30 @@ export default function Hero() {
 
   const closeAgendamentoModal = () => setIsModalAgendamentoOpen(false);
   const closeLoginModal = () => setIsModalLoginOpen(false);
+  const closeCadastroModal = () => setIsModalCadastroOpen(false);
 
   const handleLoginSuccess = () => {
-    // Após login bem sucedido, fecha o modal de login
     setIsModalLoginOpen(false);
+    // Se o usuário estava tentando agendar antes de fazer login
+    if (!user) {
+      setIsModalAgendamentoOpen(true);
+    }
+  };
+
+  const handleCadastroSuccess = () => {
+    setIsModalCadastroOpen(false);
+    // Opcional: abrir modal de agendamento após cadastro
+    setIsModalAgendamentoOpen(true);
+  };
+
+  const switchToCadastro = () => {
+    setIsModalLoginOpen(false);
+    setIsModalCadastroOpen(true);
+  };
+
+  const switchToLogin = () => {
+    setIsModalCadastroOpen(false);
+    setIsModalLoginOpen(true);
   };
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
@@ -78,23 +100,6 @@ export default function Hero() {
               Nossos Serviços
             </a>
           </div>
-          {/* <p className="mt-10 text-sm text-yellow-500 flex items-center justify-center gap-2 cursor-pointer">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-              />
-            </svg>
-            (21) 4002-8922
-          </p> */}
         </div>
       </section>
 
@@ -107,11 +112,15 @@ export default function Hero() {
       <ModalLogin
         isOpen={isModalLoginOpen}
         onClose={closeLoginModal}
-        onSwitchToCadastro={() => {
-          // Aqui você pode adicionar lógica para abrir modal de cadastro se quiser
-          console.log("Abrir cadastro do Hero");
-        }}
+        onSwitchToCadastro={switchToCadastro} // Agora esta função funciona
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      <ModalCadastro
+        isOpen={isModalCadastroOpen}
+        onClose={closeCadastroModal}
+        onSwitchToLogin={switchToLogin}
+        onCadastroSuccess={handleCadastroSuccess}
       />
     </>
   );

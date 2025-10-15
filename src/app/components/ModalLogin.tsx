@@ -100,7 +100,7 @@ export default function ModalLogin({ isOpen, onClose, onSwitchToCadastro, onLogi
         <div className="mt-6 text-center">
           <button
             onClick={onSwitchToCadastro}
-            className="text-yellow-500 hover:text-yellow-400 text-sm transition-colors"
+            className="text-yellow-500 hover:text-yellow-400 text-sm transition-colors cursor-pointer"
           >
             Não tem conta? Cadastre-se
           </button>
