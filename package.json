@@ -10,6 +10,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "firebase": "^12.4.0",
+    "firebase-admin": "^13.5.0",
     "heroicons": "^2.2.0",
     "next": "15.5.5",
     "react": "19.1.0",

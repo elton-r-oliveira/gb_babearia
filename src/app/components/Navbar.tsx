@@ -7,9 +7,7 @@ import { auth } from "@/lib/firebase";
 import ModalAgendamento from "./ModalAgendamento";
 import ModalLogin from "./ModalLogin";
 import ModalCadastro from "./ModalCadastro";
-
-// Lista de emails autorizados como admin
-const ADMIN_EMAILS = ["elton@gmail.com", "admin@gbbarbershop.com"];
+import { getIdToken } from "firebase/auth";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -25,12 +23,22 @@ export default function Navbar() {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
 
-    // Verifica se usuário está logado
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      // Verifica se é admin
-      if (user && ADMIN_EMAILS.includes(user.email!)) {
-        setIsAdmin(true);
+
+      if (user) {
+        try {
+          const token = await user.getIdToken(); // ou getIdToken(user)
+          const response = await fetch("/api/admin/check", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          const data = await response.json();
+          setIsAdmin(data.isAdmin);
+        } catch (err) {
+          console.error("Erro ao verificar admin:", err);
+          setIsAdmin(false);
+        }
       } else {
         setIsAdmin(false);
       }
@@ -41,6 +49,7 @@ export default function Navbar() {
       unsubscribe();
     };
   }, []);
+
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -93,8 +102,8 @@ export default function Navbar() {
     <>
       <nav
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled
-            ? "bg-black/90 backdrop-blur-md shadow-md"
-            : "bg-transparent"
+          ? "bg-black/90 backdrop-blur-md shadow-md"
+          : "bg-transparent"
           }`}
       >
         <div className="flex justify-between items-center px-6 py-4 text-white w-full">
