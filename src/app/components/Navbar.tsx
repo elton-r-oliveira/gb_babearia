@@ -8,6 +8,9 @@ import ModalAgendamento from "./ModalAgendamento";
 import ModalLogin from "./ModalLogin";
 import ModalCadastro from "./ModalCadastro";
 
+// Lista de emails autorizados como admin
+const ADMIN_EMAILS = ["elton@gmail.com", "admin@gbbarbershop.com"];
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isModalAgendamentoOpen, setIsModalAgendamentoOpen] = useState(false);
@@ -16,6 +19,7 @@ export default function Navbar() {
   const [isModalLogoutOpen, setIsModalLogoutOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -24,6 +28,12 @@ export default function Navbar() {
     // Verifica se usuário está logado
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      // Verifica se é admin
+      if (user && ADMIN_EMAILS.includes(user.email!)) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => {
@@ -82,11 +92,10 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-          isScrolled
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled
             ? "bg-black/90 backdrop-blur-md shadow-md"
             : "bg-transparent"
-        }`}
+          }`}
       >
         <div className="flex justify-between items-center px-6 py-4 text-white w-full">
           {/* Logo - Canto Esquerdo */}
@@ -146,9 +155,20 @@ export default function Navbar() {
             <div className="hidden md:flex gap-4 items-center">
               {user ? (
                 <>
+                  {/* Link Admin - Só aparece para admins */}
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="text-sm text-gray-300 hover:text-yellow-500 transition-colors"
+                    >
+                      PAINEL DE ADMIN
+                    </Link>
+                  )}
+
                   <span className="text-sm text-gray-300">
                     Olá, {user.displayName || user.email}
                   </span>
+
                   <button
                     onClick={openLogoutModal}
                     className="bg-yellow-600 text-black px-4 py-2 rounded-md hover:bg-yellow-500 transition text-sm font-medium"
@@ -236,6 +256,17 @@ export default function Navbar() {
                 >
                   Contato
                 </Link>
+
+                {/* Link Admin no Mobile - Só aparece para admins */}
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-2 text-yellow-500 hover:text-yellow-400 transition-colors border-b border-neutral-800"
+                  >
+                    Painel Admin
+                  </Link>
+                )}
               </div>
 
               {/* Área de Login/Logout Mobile */}
@@ -315,11 +346,11 @@ export default function Navbar() {
       {/* Modal de Confirmação de Logout */}
       {isModalLogoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div 
+          <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setIsModalLogoutOpen(false)}
           />
-          
+
           <div className="relative bg-neutral-800 border border-neutral-700 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
@@ -338,11 +369,11 @@ export default function Navbar() {
                   />
                 </svg>
               </div>
-              
+
               <h3 className="text-lg font-semibold text-white mb-2">
                 Confirmar Logout
               </h3>
-              
+
               <p className="text-gray-300 mb-6">
                 Tem certeza que deseja sair da sua conta?
               </p>

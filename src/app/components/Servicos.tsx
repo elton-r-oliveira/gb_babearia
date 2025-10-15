@@ -10,25 +10,25 @@ export default function Servicos() {
     {
       titulo: "Corte de Cabelo",
       descricao: "Cortes modernos e clássicos executados por profissionais experientes",
-      preco: "A partir de R$ 40",
+      preco: "A partir de R$ 40,00",
       icone: <ScissorsIcon className="w-8 h-8 text-yellow-500" />
     },
     {
       titulo: "Barba",
       descricao: "Design de barba completo com toalha quente e produtos premium",
-      preco: "A partir de R$ 35",
+      preco: "A partir de R$ 35,00",
       icone: <SparklesIcon className="w-8 h-8 text-yellow-500" />
     },
     {
       titulo: "Pintura de Cabelo",
       descricao: "Coloração profissional e luzes para renovar seu visual",
-      preco: "A partir de R$ 80",
+      preco: "A partir de R$ 80,00",
       icone: <PaintBrushIcon className="w-8 h-8 text-yellow-500" />
     },
     {
       titulo: "Tratamentos",
       descricao: "Hidratação, relaxamento e tratamentos capilares especializados para todos os tipos de cabelo",
-      preco: "A partir de R$ 50",
+      preco: "A partir de R$ 50,00",
       icone: <WrenchScrewdriverIcon className="w-8 h-8 text-yellow-500" />
     }
   ];
