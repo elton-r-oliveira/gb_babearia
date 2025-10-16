@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { collection, getDocs, orderBy, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, where, deleteDoc, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import {
     CalendarIcon,
     UserIcon,
@@ -16,11 +16,10 @@ import {
     CheckCircleIcon,
     XCircleIcon,
     PhoneIcon,
-    FunnelIcon
+    FunnelIcon,
+    PlusIcon
 } from "@heroicons/react/24/outline";
-
-// Lista de emails autorizados como admin (configure com seu email)
-const ADMIN_EMAILS = ["elton@gmail.com", "admin@gbbarbershop.com"];
+import ModalAgendamento from "@/app/components/ModalAgendamento"
 
 interface Agendamento {
     id: string;
@@ -47,14 +46,86 @@ export default function AdminPage() {
     const [dataInicio, setDataInicio] = useState<string>("");
     const [dataFim, setDataFim] = useState<string>("");
     const [mostrarFiltroAvancado, setMostrarFiltroAvancado] = useState(false);
+    const [mostrarModalServico, setMostrarModalServico] = useState(false);
+    const [mostrarModalAgendamento, setMostrarModalAgendamento] = useState(false);
+
+    // Estados para o formulário de serviço presencial
+    const [novoServico, setNovoServico] = useState({
+        nomeCliente: "",
+        emailCliente: "",
+        telefoneCliente: "",
+        servico: "",
+        preco: "",
+        duracao: "30 min",
+        dataHora: new Date().toISOString().slice(0, 16)
+    });
+
+    const [cadastrandoServico, setCadastrandoServico] = useState(false);
+
+    // Lista de serviços disponíveis
+    const servicosDisponiveis = [
+        {
+            id: "corte-cabelo",
+            titulo: "Corte de Cabelo",
+            preco: "R$ 40,00",
+            duracao: "30 min"
+        },
+        {
+            id: "barba",
+            titulo: "Barba",
+            preco: "R$ 35,00",
+            duracao: "25 min"
+        },
+        {
+            id: "corte-barba",
+            titulo: "Corte + Barba",
+            preco: "R$ 65,00",
+            duracao: "50 min"
+        },
+        {
+            id: "pintura-cabelo",
+            titulo: "Pintura de Cabelo",
+            preco: "R$ 80,00",
+            duracao: "90 min"
+        },
+        {
+            id: "tratamento-capilar",
+            titulo: "Tratamentos Capilares",
+            preco: "R$ 50,00",
+            duracao: "45 min"
+        },
+        {
+            id: "sobrancelha",
+            titulo: "Design de Sobrancelha",
+            preco: "R$ 25,00",
+            duracao: "20 min"
+        }
+    ];
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setUser(user);
 
-            if (user && ADMIN_EMAILS.includes(user.email!)) {
-                setIsAdmin(true);
-                carregarAgendamentos();
+            if (user) {
+                try {
+                    const token = await user.getIdToken();
+                    const response = await fetch("/api/admin/check", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    const data = await response.json();
+                    setIsAdmin(data.isAdmin);
+
+                    if (data.isAdmin) {
+                        carregarAgendamentos();
+                    } else {
+                        setLoading(false);
+                    }
+                } catch (err) {
+                    console.error("Erro ao verificar admin:", err);
+                    setIsAdmin(false);
+                    setLoading(false);
+                }
             } else {
                 setIsAdmin(false);
                 setLoading(false);
@@ -89,6 +160,61 @@ export default function AdminPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Função para cadastrar serviço presencial
+    const cadastrarServicoPresencial = async () => {
+        if (!novoServico.nomeCliente || !novoServico.servico || !novoServico.preco) {
+            alert("Preencha pelo menos o nome do cliente, serviço e preço!");
+            return;
+        }
+
+        setCadastrandoServico(true);
+        try {
+            await addDoc(collection(db, "agendamentos"), {
+                usuarioId: "admin-" + Date.now(),
+                usuarioEmail: novoServico.emailCliente || "nao-informado@barbearia.com",
+                usuarioNome: novoServico.nomeCliente,
+                usuarioTelefone: novoServico.telefoneCliente || "",
+                servico: novoServico.servico,
+                preco: novoServico.preco,
+                duracao: novoServico.duracao,
+                dataHora: new Date(novoServico.dataHora),
+                status: "concluido",
+                criadoPor: user?.uid,
+                criadoEm: serverTimestamp(),
+            });
+
+            // Limpa o formulário e recarrega a lista
+            setNovoServico({
+                nomeCliente: "",
+                emailCliente: "",
+                telefoneCliente: "",
+                servico: "",
+                preco: "",
+                duracao: "30 min",
+                dataHora: new Date().toISOString().slice(0, 16)
+            });
+            setMostrarModalServico(false);
+            carregarAgendamentos();
+
+            alert("Serviço cadastrado com sucesso!");
+        } catch (error: any) {
+            console.error("Erro ao cadastrar serviço:", error);
+            alert("Erro ao cadastrar serviço: " + error.message);
+        } finally {
+            setCadastrandoServico(false);
+        }
+    };
+
+    // Função para selecionar serviço pré-definido
+    const selecionarServicoPredefinido = (servico: any) => {
+        setNovoServico({
+            ...novoServico,
+            servico: servico.titulo,
+            preco: servico.preco,
+            duracao: servico.duracao
+        });
     };
 
     const atualizarStatus = async (id: string, novoStatus: Agendamento["status"]) => {
@@ -128,6 +254,24 @@ export default function AdminPage() {
             return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
         }
 
+        return telefone;
+    };
+
+    // Função para formatar telefone no input
+    const formatarTelefoneInput = (telefone: string) => {
+        const numeros = telefone.replace(/\D/g, '');
+
+        if (numeros.length <= 11) {
+            if (numeros.length <= 2) {
+                return numeros;
+            } else if (numeros.length <= 6) {
+                return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+            } else if (numeros.length <= 10) {
+                return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
+            } else {
+                return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7, 11)}`;
+            }
+        }
         return telefone;
     };
 
@@ -276,6 +420,7 @@ export default function AdminPage() {
         setDataInicio("");
         setDataFim("");
     };
+
     if (!user) {
         return (
             <div className="min-h-screen bg-neutral-900 text-white flex items-center justify-center">
@@ -353,6 +498,15 @@ export default function AdminPage() {
                                 Filtros
                             </button>
 
+                            {/* Botão para cadastrar serviço presencial */}
+                            <button
+                                onClick={() => setMostrarModalServico(true)}
+                                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition flex items-center gap-2 text-sm font-medium"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                Novo Serviço
+                            </button>
+
                             <button
                                 onClick={carregarAgendamentos}
                                 className="bg-yellow-600 text-black px-4 py-2 rounded-md hover:bg-yellow-500 transition text-sm font-medium"
@@ -388,7 +542,7 @@ export default function AdminPage() {
                                         className="w-full bg-neutral-700 border border-neutral-600 rounded-md px-3 py-2 text-white focus:border-yellow-500 focus:outline-none"
                                     />
                                 </div>
-                                <div className="flex items-end gap-2"> {/* Adicionado gap-2 para espaçamento */}
+                                <div className="flex items-end gap-2">
                                     <button
                                         onClick={() => {
                                             setFiltroPeriodo("personalizado");
@@ -408,7 +562,6 @@ export default function AdminPage() {
 
                             {dataInicio && dataFim && (
                                 <div className="mt-3 text-sm text-gray-300">
-                                    {/* <p>Período selecionado: {new Date(dataInicio + 'T00:00:00').toLocaleDateString('pt-BR')} até {new Date(dataFim + 'T00:00:00').toLocaleDateString('pt-BR')}</p> */}
                                     <p className="text-xs text-gray-400 text-align-center">Incluindo todo o dia final selecionado (até 23:59:59)</p>
                                 </div>
                             )}
@@ -416,7 +569,6 @@ export default function AdminPage() {
                     )}
                 </div>
 
-                {/* Resto do código permanece igual... */}
                 {/* Estatísticas */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                     <div className="bg-neutral-800 rounded-lg p-4 border border-neutral-700">
@@ -508,9 +660,12 @@ export default function AdminPage() {
                                     {agendamentosFiltrados.map((agendamento) => (
                                         <tr key={agendamento.id} className="hover:bg-neutral-750 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <p className="font-medium text-white">{agendamento.usuarioNome}</p>
-                                                    <p className="text-sm text-gray-400">{agendamento.usuarioEmail}</p>
+                                                <div className="flex items-start gap-3">
+                                                    <UserIcon className="w-4 h-4 text-yellow-500 mt-1" />
+                                                    <div>
+                                                        <p className="font-medium text-white">{agendamento.usuarioNome}</p>
+                                                        <p className="text-sm text-gray-400">{agendamento.usuarioEmail}</p>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -520,22 +675,29 @@ export default function AdminPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-2">
-                                                    <ScissorsIcon className="w-4 h-4 text-yellow-500" />
-                                                    <span>{agendamento.servico}</span>
+                                                <div className="flex items-start gap-3">
+                                                    <ScissorsIcon className="w-4 h-4 text-yellow-500 mt-1" />
+                                                    <div>
+                                                        <span className="font-medium">{agendamento.servico}</span>
+                                                        <p className="text-sm text-gray-400">{agendamento.duracao}</p>
+                                                    </div>
                                                 </div>
-                                                <p className="text-sm text-gray-400">{agendamento.duracao}</p>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <p className="text-white">
-                                                    {agendamento.dataHora.toLocaleDateString('pt-BR')}
-                                                </p>
-                                                <p className="text-sm text-gray-400">
-                                                    {agendamento.dataHora.toLocaleTimeString('pt-BR', {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
-                                                </p>
+                                                <div className="flex items-start gap-3">
+                                                    <CalendarIcon className="w-4 h-4 text-yellow-500 mt-1" />
+                                                    <div>
+                                                        <p className="text-white font-medium">
+                                                            {agendamento.dataHora.toLocaleDateString('pt-BR')}
+                                                        </p>
+                                                        <p className="text-sm text-gray-400">
+                                                            {agendamento.dataHora.toLocaleTimeString('pt-BR', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-1">
@@ -594,6 +756,167 @@ export default function AdminPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modal Cadastro de Serviço Presencial */}
+            {mostrarModalServico && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMostrarModalServico(false)} />
+                    <div className="relative bg-neutral-800 rounded-lg max-w-2xl w-full mx-4 shadow-xl">
+                        <div className="flex justify-between items-center p-6 border-b border-neutral-700">
+                            <h2 className="text-xl font-bold text-white">Cadastrar Serviço Realizado</h2>
+                            <button
+                                onClick={() => setMostrarModalServico(false)}
+                                className="text-gray-400 hover:text-white transition-colors text-2xl"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                            Nome do Cliente *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={novoServico.nomeCliente}
+                                            onChange={(e) => setNovoServico({ ...novoServico, nomeCliente: e.target.value })}
+                                            className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                            placeholder="Digite o nome do cliente"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                            Email do Cliente
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={novoServico.emailCliente}
+                                            onChange={(e) => setNovoServico({ ...novoServico, emailCliente: e.target.value })}
+                                            className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                            placeholder="Digite o email (opcional)"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                        Telefone do Cliente
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={novoServico.telefoneCliente}
+                                        onChange={(e) => setNovoServico({ ...novoServico, telefoneCliente: formatarTelefoneInput(e.target.value) })}
+                                        className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                        placeholder="(11) 99999-9999"
+                                        maxLength={15}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                        Data e Hora do Serviço *
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        value={novoServico.dataHora}
+                                        onChange={(e) => setNovoServico({ ...novoServico, dataHora: e.target.value })}
+                                        className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                    />
+                                </div>
+
+                                {/* Serviços Pré-definidos */}
+                                <div>
+                                    <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                        Serviços Disponíveis
+                                    </label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                                        {servicosDisponiveis.map((servico) => (
+                                            <button
+                                                key={servico.id}
+                                                onClick={() => selecionarServicoPredefinido(servico)}
+                                                className={`p-3 rounded border text-left transition-all ${novoServico.servico === servico.titulo
+                                                    ? 'bg-yellow-500 border-yellow-500 text-black'
+                                                    : 'bg-neutral-700 border-neutral-600 text-white hover:border-yellow-500'
+                                                    }`}
+                                            >
+                                                <div className="font-medium">{servico.titulo}</div>
+                                                <div className="text-sm opacity-80">{servico.preco} • {servico.duracao}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                            Serviço *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={novoServico.servico}
+                                            onChange={(e) => setNovoServico({ ...novoServico, servico: e.target.value })}
+                                            className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                            placeholder="Digite o serviço"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                            Preço *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={novoServico.preco}
+                                            onChange={(e) => setNovoServico({ ...novoServico, preco: e.target.value })}
+                                            className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                            placeholder="R$ 00,00"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-300 mb-2 text-sm font-medium">
+                                            Duração
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={novoServico.duracao}
+                                            onChange={(e) => setNovoServico({ ...novoServico, duracao: e.target.value })}
+                                            className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
+                                            placeholder="30 min"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={cadastrarServicoPresencial}
+                                    disabled={cadastrandoServico}
+                                    className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-500 transition flex-1 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {cadastrandoServico ? "Cadastrando..." : "Cadastrar Serviço"}
+                                </button>
+                                <button
+                                    onClick={() => setMostrarModalServico(false)}
+                                    className="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-500 transition font-semibold"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Agendamento Online (existente) */}
+            <ModalAgendamento
+                isOpen={mostrarModalAgendamento}
+                onClose={() => setMostrarModalAgendamento(false)}
+            />
         </div>
     );
 }
