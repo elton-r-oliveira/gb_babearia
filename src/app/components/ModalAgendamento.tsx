@@ -368,12 +368,12 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                                             Selecione o Serviço
                                         </h3>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2">
                                             {servicos.map((servicoItem) => (
                                                 <div
                                                     key={servicoItem.id}
                                                     onClick={() => handleSelecionarServico(servicoItem)}
-                                                    className={`bg-neutral-700 border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:border-yellow-500 group ${servicoSelecionado?.id === servicoItem.id
+                                                    className={`bg-neutral-700 border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:border-yellow-500 group mx-1 ${servicoSelecionado?.id === servicoItem.id
                                                         ? 'border-yellow-500 bg-yellow-500/10'
                                                         : 'border-neutral-600'
                                                         }`}
@@ -430,7 +430,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                                         </div>
 
                                         {/* Resumo do Serviço Selecionado */}
-                                        <div className="bg-neutral-700 rounded-lg p-4 mb-6 border border-yellow-500/30">
+                                        <div className="bg-neutral-700 rounded-lg p-4 mb-6 border border-yellow-500/30 mx-1">
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <h4 className="font-semibold text-yellow-500">
@@ -507,7 +507,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
 
                                         {dataSelecionada && horaSelecionada && (
                                             <p className="text-gray-400 text-sm text-center mt-4">
-                                                Agendamento para: {new Date(dataSelecionada).toLocaleDateString('pt-BR')} às {horaSelecionada}
+                                                Agendamento para: {new Date(dataSelecionada + 'T00:00:00').toLocaleDateString('pt-BR')} às {horaSelecionada}
                                             </p>
                                         )}
                                     </div>
@@ -527,6 +527,24 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                     duration={notification.type === "success" ? 5000 : 7000}
                 />
             )}
+
+            {/* Estilos para esconder a scrollbar */}
+            <style jsx>{`
+                .overflow-y-auto::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .overflow-y-auto::-webkit-scrollbar-track {
+                    background: #404040;
+                    border-radius: 3px;
+                }
+                .overflow-y-auto::-webkit-scrollbar-thumb {
+                    background: #737373;
+                    border-radius: 3px;
+                }
+                .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                    background: #a3a3a3;
+                }
+            `}</style>
         </>
     );
 }

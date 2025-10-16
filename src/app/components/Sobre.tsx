@@ -5,6 +5,7 @@ export default function Sobre() {
     return (
         <section id="sobre" className="bg-[#0f0f0f] py-24 px-6 md:px-16 text-white">
             <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+                
                 {/* Texto */}
                 <div>
                     <h2 className="text-4xl font-bold mb-6">Sobre a GB Barbershop</h2>
