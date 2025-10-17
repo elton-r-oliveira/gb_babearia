@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "../../../../lib/firebaseAdmin.ts"
+import { adminAuth } from "../../../../lib/firebaseAdmin"
 
 const ADMIN_EMAILS = ["elton@gmail.com", "admin@gbbarbershop.com"];
 
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ isAdmin: false }, { status: 401 });
     }
 
-    // Verificar token com Firebase Admin
+    // Verificar token com Firebase adm
     const decodedToken = await adminAuth.verifyIdToken(token);
     const userEmail = decodedToken.email;
 

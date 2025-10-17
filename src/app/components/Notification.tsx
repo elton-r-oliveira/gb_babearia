@@ -1,4 +1,3 @@
-// components/Notification.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,13 +19,11 @@ export default function Notification({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Animação de entrada
     setIsVisible(true);
 
-    // Auto-close após a duração
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onClose, 300); // Espera a animação de saída
+      setTimeout(onClose, 300);
     }, duration);
 
     return () => clearTimeout(timer);

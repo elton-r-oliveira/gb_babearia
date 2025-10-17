@@ -5,7 +5,7 @@ export default function Sobre() {
     return (
         <section id="sobre" className="bg-[#0f0f0f] py-24 px-6 md:px-16 text-white">
             <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-                
+
                 {/* Texto */}
                 <div>
                     <h2 className="text-4xl font-bold mb-6">Sobre a GB Barbershop</h2>
@@ -43,9 +43,9 @@ export default function Sobre() {
                     </div>
                 </div>
 
-                {/* Imagens - Layout corrigido */}
+                {/* Imagens - Layout */}
                 <div className="grid grid-cols-2 grid-rows-3 gap-4 h-[600px]">
-                    {/* Imagem 1 - Ocupa 3 linhas na primeira coluna */}
+
                     <div className="row-span-3">
                         <Image
                             src="/images/barbeiro.png"
@@ -56,7 +56,6 @@ export default function Sobre() {
                         />
                     </div>
 
-                    {/* Imagem 2 - Primeira linha, segunda coluna */}
                     <div>
                         <Image
                             src="/images/pole.png"
@@ -67,7 +66,6 @@ export default function Sobre() {
                         />
                     </div>
 
-                    {/* Imagem 3 - Segunda linha, segunda coluna */}
                     <div>
                         <Image
                             src="/images/barbearia.png"
@@ -78,7 +76,6 @@ export default function Sobre() {
                         />
                     </div>
 
-                    {/* Card Ambiente Premium - Terceira linha, segunda coluna */}
                     <div className="bg-yellow-600 text-black p-6 rounded-lg flex flex-col justify-center">
                         <h3 className="text-lg font-semibold mb-2">Ambiente Premium</h3>
                         <p className="text-sm">Conforto e sofisticação para sua experiência</p>

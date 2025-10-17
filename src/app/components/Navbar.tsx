@@ -7,7 +7,6 @@ import { auth } from "@/lib/firebase";
 import ModalAgendamento from "./ModalAgendamento";
 import ModalLogin from "./ModalLogin";
 import ModalCadastro from "./ModalCadastro";
-import { getIdToken } from "firebase/auth";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -26,9 +25,10 @@ export default function Navbar() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
 
+      // verificação de adm
       if (user) {
         try {
-          const token = await user.getIdToken(); // ou getIdToken(user)
+          const token = await user.getIdToken();
           const response = await fetch("/api/admin/check", {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -60,16 +60,15 @@ export default function Navbar() {
         block: "start",
       });
     }
-    setIsMobileMenuOpen(false); // Fecha o menu mobile após clicar
+    setIsMobileMenuOpen(false);
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setIsModalLogoutOpen(false);
-      setIsMobileMenuOpen(false); // Fecha o menu mobile após logout
+      setIsMobileMenuOpen(false);
     } catch (error) {
-      console.error("Erro ao fazer logout:", error);
     }
   };
 
@@ -79,15 +78,15 @@ export default function Navbar() {
     } else {
       setIsModalAgendamentoOpen(true);
     }
-    setIsMobileMenuOpen(false); // Fecha o menu mobile
+    setIsMobileMenuOpen(false);
   };
 
   const handleLoginSuccess = () => {
-    setIsMobileMenuOpen(false); // Fecha o menu mobile após login
+    setIsMobileMenuOpen(false);
   };
 
   const handleCadastroSuccess = () => {
-    setIsMobileMenuOpen(false); // Fecha o menu mobile após cadastro
+    setIsMobileMenuOpen(false);
   };
 
   const toggleMobileMenu = () => {
@@ -107,14 +106,15 @@ export default function Navbar() {
           }`}
       >
         <div className="flex justify-between items-center px-6 py-4 text-white w-full">
-          {/* Logo - Canto Esquerdo */}
+
+          {/* Logo */}
           <div className="flex-1">
             <h1 className="text-xl font-bold">
               GB <span className="text-yellow-500">Barbershop</span>
             </h1>
           </div>
 
-          {/* Menu Central - Desktop */}
+          {/* Menu Central */}
           <div className="flex-1 flex justify-center">
             <ul className="hidden md:flex gap-8 text-sm font-medium">
               <li>
@@ -159,12 +159,11 @@ export default function Navbar() {
             </ul>
           </div>
 
-          {/* Login/Sair - Desktop */}
+          {/* Login/Sair */}
           <div className="flex-1 flex justify-end">
             <div className="hidden md:flex gap-4 items-center">
               {user ? (
                 <>
-                  {/* Link Admin - Só aparece para admins */}
                   {isAdmin && (
                     <Link
                       href="/admin"
@@ -195,7 +194,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Botão Hambúrguer - Mobile */}
+            {/* Botão mobile */}
             <button
               onClick={toggleMobileMenu}
               className="md:hidden bg-yellow-600 text-black p-2 rounded-md hover:bg-yellow-500 transition"
@@ -227,10 +226,11 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Menu Mobile */}
+        {/* Menu mobile */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-neutral-800">
             <div className="px-6 py-4 space-y-4">
+
               {/* Links do Menu */}
               <div className="space-y-3">
                 <Link
@@ -266,7 +266,7 @@ export default function Navbar() {
                   Contato
                 </Link>
 
-                {/* Link Admin no Mobile - Só aparece para admins */}
+                {/* Link adm no mobile */}
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -278,7 +278,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Área de Login/Logout Mobile */}
+              {/* Login/Sair mobile */}
               <div className="pt-4 border-t border-neutral-700">
                 {user ? (
                   <div className="space-y-3">
@@ -326,7 +326,6 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* Modais */}
       <ModalAgendamento
         isOpen={isModalAgendamentoOpen}
         onClose={() => setIsModalAgendamentoOpen(false)}
@@ -352,7 +351,7 @@ export default function Navbar() {
         onCadastroSuccess={handleCadastroSuccess}
       />
 
-      {/* Modal de Confirmação de Logout */}
+      {/* Modal confirma sair */}
       {isModalLogoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div

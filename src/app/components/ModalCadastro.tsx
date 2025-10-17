@@ -12,6 +12,8 @@ interface ModalCadastroProps {
   onCadastroSuccess: () => void;
 }
 
+const limparNumero = (valor: string) => valor.replace(/\D/g, '');
+
 export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCadastroSuccess }: ModalCadastroProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -21,19 +23,17 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
   const [loading, setLoading] = useState(false);
 
   const formatarTelefone = (valor: string) => {
-    // Remove tudo que não é número
-    const apenasNumeros = valor.replace(/\D/g, '');
-    
-    // Formata o telefone: (00) 00000-0000
+    const apenasNumeros = limparNumero(valor);
+
     if (apenasNumeros.length <= 10) {
       return apenasNumeros
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{4})(\d)/, '$1-$2');
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
     } else {
       return apenasNumeros
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2')
-        .replace(/(-\d{4})\d+?$/, '$1');
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
     }
   };
 
@@ -44,7 +44,7 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!nome || !email || !telefone || !senha || !confirmarSenha) {
       alert("Preencha todos os campos!");
       return;
@@ -55,13 +55,12 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
       return;
     }
 
-    if (senha.length < 6) {
-      alert("A senha deve ter pelo menos 6 caracteres!");
+    if (senha.length < 8) {
+      alert("A senha deve ter pelo menos 8 caracteres!");
       return;
     }
 
-    // Validação básica de telefone (pelo menos 10 dígitos)
-    const apenasNumerosTelefone = telefone.replace(/\D/g, '');
+    const apenasNumerosTelefone = limparNumero(telefone);
     if (apenasNumerosTelefone.length < 10) {
       alert("Por favor, insira um telefone válido!");
       return;
@@ -78,8 +77,8 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
       await setDoc(doc(db, "usuarios", user.uid), {
         nome,
         email,
-        telefone: apenasNumerosTelefone, // Salva apenas os números
-        telefoneFormatado: telefone, // Salva o formato bonito também
+        telefone: apenasNumerosTelefone,
+        telefoneFormatado: telefone,
         criadoEm: serverTimestamp(),
       });
 
@@ -102,11 +101,11 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-neutral-800 border border-neutral-700 rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">
@@ -188,11 +187,10 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
               placeholder="Digite a senha novamente"
               value={confirmarSenha}
               onChange={(e) => setConfirmarSenha(e.target.value)}
-              className={`w-full p-3 rounded bg-neutral-700 text-white border transition-colors focus:outline-none ${
-                confirmarSenha && senha !== confirmarSenha 
-                  ? "border-red-500 focus:border-red-500" 
-                  : "border-neutral-600 focus:border-yellow-500"
-              }`}
+              className={`w-full p-3 rounded bg-neutral-700 text-white border transition-colors focus:outline-none ${confirmarSenha && senha !== confirmarSenha
+                ? "border-red-500 focus:border-red-500"
+                : "border-neutral-600 focus:border-yellow-500"
+                }`}
               required
             />
             {confirmarSenha && senha !== confirmarSenha && (

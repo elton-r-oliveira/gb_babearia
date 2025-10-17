@@ -1,18 +1,10 @@
-// components/ModalAgendamento.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
-import {
-    ScissorsIcon,
-    SparklesIcon,
-    PaintBrushIcon,
-    WrenchScrewdriverIcon,
-    CalendarIcon,
-    ClockIcon
-} from '@heroicons/react/24/outline';
+import { ScissorsIcon, SparklesIcon, PaintBrushIcon, WrenchScrewdriverIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import Notification from "./Notification";
 
 interface ModalAgendamentoProps {
@@ -49,7 +41,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         type: "success"
     });
 
-    // Horários fixos da barbearia (08:00 às 20:00)
     const horariosFixos = [
         "08:00", "09:00", "10:00", "11:00", "12:00",
         "13:00", "14:00", "15:00", "16:00", "17:00",
@@ -107,7 +98,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         }
     ];
 
-    // Verifica se usuário está logado
+    // verificação usuário logado
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
@@ -115,14 +106,14 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         return () => unsubscribe();
     }, []);
 
-    // Carrega horários disponíveis quando a data é selecionada
+    // da load nos horários disponíveis ao selecionar a data
     useEffect(() => {
         if (dataSelecionada) {
             carregarHorariosDisponiveis();
         }
     }, [dataSelecionada]);
 
-    // Função para buscar o telefone do usuário
+    // busca o telefone do usuário
     const buscarTelefoneUsuario = async (userId: string): Promise<string> => {
         try {
             const userDocRef = doc(db, "usuarios", userId);
@@ -130,7 +121,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
 
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                // Tenta buscar o telefone formatado primeiro, depois o telefone apenas números
                 return userData.telefoneFormatado || userData.telefone || "";
             }
             return "";
@@ -148,9 +138,9 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
             const dataObj = new Date(dataSelecionada + 'T00:00:00');
             const inicioDia = new Date(dataObj);
             const fimDia = new Date(dataObj);
-            fimDia.setHours(23, 59, 59, 999);
+            fimDia.setHours(23, 59, 59);
 
-            // Busca agendamentos já marcados
+            // verifica se tem agendamentos marcados
             const agendamentosRef = collection(db, "agendamentos");
             const q = query(
                 agendamentosRef,
@@ -169,7 +159,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                 horariosOcupados.add(hora);
             });
 
-            // === NOVA LÓGICA: bloquear horários passados se for hoje ===
+            // bloqueia os horarios do dia atual dependendo da hora atual
             const hoje = new Date();
             const ehHoje = dataObj.toDateString() === hoje.toDateString();
 
@@ -178,7 +168,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                 const horarioDate = new Date(dataObj);
                 horarioDate.setHours(horaStr, minutoStr, 0, 0);
 
-                // Se for hoje e o horário já passou, marcar como indisponível
                 const horarioJaPassou = ehHoje && horarioDate < hoje;
 
                 return {
@@ -189,7 +178,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
 
             setHorariosDisponiveis(disponiveis);
         } catch (error) {
-            console.error("Erro ao carregar horários:", error);
             showNotification("Erro ao carregar horários disponíveis", "error");
         } finally {
             setCarregandoHorarios(false);
@@ -222,9 +210,10 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         setHorariosDisponiveis([]);
     };
 
+    // reseta a hora quando a data muda
     const handleSelecionarData = (e: React.ChangeEvent<HTMLInputElement>) => {
         setDataSelecionada(e.target.value);
-        setHoraSelecionada(""); // Reseta a hora quando a data muda
+        setHoraSelecionada("");
     };
 
     const handleSelecionarHora = (hora: string) => {
@@ -258,14 +247,13 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         setLoading(true);
 
         try {
-            // Busca o telefone do usuário
             const usuarioTelefone = await buscarTelefoneUsuario(user.uid);
 
             await addDoc(collection(db, "agendamentos"), {
                 usuarioId: user.uid,
                 usuarioEmail: user.email,
                 usuarioNome: user.displayName || "Cliente",
-                usuarioTelefone: usuarioTelefone, // AQUI ESTÁ O CAMPO QUE FALTAVA
+                usuarioTelefone: usuarioTelefone,
                 servico: servicoSelecionado.titulo,
                 preco: servicoSelecionado.preco,
                 duracao: servicoSelecionado.duracao,
@@ -276,7 +264,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
 
             showNotification("Agendamento criado com sucesso! Em breve entraremos em contato para confirmação.");
 
-            // Limpa o formulário e fecha o modal após um delay
             setTimeout(() => {
                 setServico("");
                 setServicoSelecionado(null);
@@ -295,7 +282,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
         }
     };
 
-    // Fecha o modal ao pressionar ESC
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
@@ -315,7 +301,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
     return (
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-                {/* Overlay escuro */}
                 <div
                     className="absolute inset-0 bg-black/70 backdrop-blur-sm"
                     onClick={onClose}
@@ -323,11 +308,10 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
 
                 {/* Modal */}
                 <div className="relative bg-neutral-800 rounded-lg max-w-2xl w-full mx-4 shadow-xl">
-                    {/* Header */}
                     <div className="flex justify-between items-center p-6 border-b border-neutral-700">
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-white">Agendar Serviço</h2>
-                            {/* Steps Indicator */}
+
                             <div className="flex gap-2">
                                 <div className={`w-3 h-3 rounded-full ${currentStep === 'servico' ? 'bg-yellow-500' : 'bg-neutral-600'
                                     }`} />
@@ -343,7 +327,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                         </button>
                     </div>
 
-                    {/* Conteúdo */}
                     <div className="p-6">
                         {!user ? (
                             <div className="text-center">
@@ -360,7 +343,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                             </div>
                         ) : (
                             <>
-                                {/* Step 1: Seleção de Serviço */}
+                                {/*Seleção de Serviço */}
                                 {currentStep === 'servico' && (
                                     <div>
                                         <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
@@ -413,7 +396,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                                     </div>
                                 )}
 
-                                {/* Step 2: Seleção de Data/Hora */}
+                                {/* Seleção de Data/Hora */}
                                 {currentStep === 'data' && servicoSelecionado && (
                                     <div>
                                         <div className="flex items-center justify-between mb-6">
@@ -451,7 +434,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                                             </div>
                                         </div>
 
-                                        {/* Seleção de Data */}
+                                        {/* Data */}
                                         <div className="mb-6">
                                             <label className="block text-gray-300 mb-2 text-sm font-medium">
                                                 Data
@@ -465,7 +448,7 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                                             />
                                         </div>
 
-                                        {/* Seleção de Horário */}
+                                        {/* Horário */}
                                         {dataSelecionada && (
                                             <div className="mb-6">
                                                 <label className="block text-gray-300 mb-2 text-sm font-medium">
@@ -518,7 +501,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                 </div>
             </div>
 
-            {/* Notificação */}
             {notification.show && (
                 <Notification
                     message={notification.message}
@@ -528,7 +510,6 @@ export default function ModalAgendamento({ isOpen, onClose }: ModalAgendamentoPr
                 />
             )}
 
-            {/* Estilos para esconder a scrollbar */}
             <style jsx>{`
                 .overflow-y-auto::-webkit-scrollbar {
                     width: 6px;

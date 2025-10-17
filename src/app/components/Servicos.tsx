@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  ScissorsIcon,
-  SparklesIcon,
-  PaintBrushIcon,
-  WrenchScrewdriverIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
-
-// Import Swiper
+import { ScissorsIcon, SparklesIcon, PaintBrushIcon, WrenchScrewdriverIcon, ClockIcon, } from "@heroicons/react/24/outline";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -82,43 +74,43 @@ export default function Servicos() {
           </p>
         </div>
 
-        {/* Carrossel com Swiper - Margem lateral aumentada */}
+        {/* Carrossel com Swiper */}
         <Swiper
           modules={[Autoplay]}
           spaceBetween={30}
           slidesPerView={1}
-          autoplay={{ 
-            delay: 4000, 
-            disableOnInteraction: false 
+          autoplay={{
+            delay: 4000,
+            disableOnInteraction: false
           }}
           loop={true}
           breakpoints={{
-            // Mobile: 1 card
-            640: { 
+
+            640: {
               slidesPerView: 1,
               spaceBetween: 25
             },
-            // Tablet: 2 cards  
-            768: { 
+
+            768: {
               slidesPerView: 2,
               spaceBetween: 30
             },
-            // Desktop pequeno: 3 cards
-            1024: { 
+
+            1024: {
               slidesPerView: 3,
               spaceBetween: 35
             },
-            // Desktop grande: 4 cards
-            1280: { 
+
+            1280: {
               slidesPerView: 4,
               spaceBetween: 40
             }
           }}
-          className="relative px-4 md:px-8" // ✅ Margem lateral aumentada
+          className="relative px-4 md:px-8"
         >
           {servicos.map((servico, index) => (
             <SwiperSlide key={index}>
-              {/* Card com margem lateral aumentada */}
+              {/* Card */}
               <div className="bg-[#1a1a1a] border border-neutral-800 rounded-lg p-6 hover:border-yellow-500 transition-all duration-300 group text-center flex flex-col h-[320px] my-8 mx-2 transform hover:scale-105">
                 <div className="flex justify-center mb-4">
                   {servico.icone}
@@ -140,16 +132,6 @@ export default function Servicos() {
             </SwiperSlide>
           ))}
         </Swiper>
-
-        {/* CSS para limitar linhas do texto */}
-        <style jsx global>{`
-          .line-clamp-4 {
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-          }
-        `}</style>
       </div>
     </section>
   );

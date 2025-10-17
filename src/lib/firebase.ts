@@ -11,9 +11,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Evita inicialização duplicada (Next.js faz reload em dev)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-console.log("🔥 Firebase config carregado:", firebaseConfig);
+// console.log("resultado:", firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);

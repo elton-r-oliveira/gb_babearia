@@ -5,16 +5,16 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import ModalAgendamento from "./ModalAgendamento";
 import ModalLogin from "./ModalLogin";
-import ModalCadastro from "./ModalCadastro"; // Importe o modal de cadastro
+import ModalCadastro from "./ModalCadastro";
 
 export default function Hero() {
   const [isModalAgendamentoOpen, setIsModalAgendamentoOpen] = useState(false);
   const [isModalLoginOpen, setIsModalLoginOpen] = useState(false);
-  const [isModalCadastroOpen, setIsModalCadastroOpen] = useState(false); // Novo estado
+  const [isModalCadastroOpen, setIsModalCadastroOpen] = useState(false); 
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Verifica se usuário está logado
+    // verificaçãousuário logado
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
@@ -35,16 +35,16 @@ export default function Hero() {
 
   const handleLoginSuccess = () => {
     setIsModalLoginOpen(false);
+
     // Se o usuário estava tentando agendar antes de fazer login
     if (!user) {
-      setIsModalAgendamentoOpen(true);
+      setIsModalAgendamentoOpen(false);
     }
   };
 
   const handleCadastroSuccess = () => {
     setIsModalCadastroOpen(false);
-    // Opcional: abrir modal de agendamento após cadastro
-    setIsModalAgendamentoOpen(true);
+    setIsModalAgendamentoOpen(true); // caso deseje abrir o agendamento direto após fazer o login
   };
 
   const switchToCadastro = () => {
@@ -103,7 +103,6 @@ export default function Hero() {
         </div>
       </section>
 
-      {/* Modais */}
       <ModalAgendamento
         isOpen={isModalAgendamentoOpen}
         onClose={closeAgendamentoModal}
@@ -112,7 +111,7 @@ export default function Hero() {
       <ModalLogin
         isOpen={isModalLoginOpen}
         onClose={closeLoginModal}
-        onSwitchToCadastro={switchToCadastro} // Agora esta função funciona
+        onSwitchToCadastro={switchToCadastro}
         onLoginSuccess={handleLoginSuccess}
       />
 
