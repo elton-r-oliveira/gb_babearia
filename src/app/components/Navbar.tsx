@@ -107,14 +107,12 @@ export default function Navbar() {
       >
         <div className="flex justify-between items-center px-6 py-4 text-white w-full">
 
-          {/* Logo */}
           <div className="flex-1">
             <h1 className="text-xl font-bold">
               GB <span className="text-yellow-500">Barbershop</span>
             </h1>
           </div>
 
-          {/* Menu Central */}
           <div className="flex-1 flex justify-center">
             <ul className="hidden md:flex gap-8 text-sm font-medium">
               <li>
@@ -159,7 +157,6 @@ export default function Navbar() {
             </ul>
           </div>
 
-          {/* Login/Sair */}
           <div className="flex-1 flex justify-end">
             <div className="hidden md:flex gap-4 items-center">
               {user ? (
@@ -194,7 +191,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Botão mobile */}
+            {/* Parte que só aparece na resolução Mobile */}
             <button
               onClick={toggleMobileMenu}
               className="md:hidden bg-yellow-600 text-black p-2 rounded-md hover:bg-yellow-500 transition"
@@ -226,12 +223,10 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Menu mobile */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-neutral-800">
             <div className="px-6 py-4 space-y-4">
 
-              {/* Links do Menu */}
               <div className="space-y-3">
                 <Link
                   href="/"
@@ -266,7 +261,6 @@ export default function Navbar() {
                   Contato
                 </Link>
 
-                {/* Link adm no mobile */}
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -278,7 +272,6 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Login/Sair mobile */}
               <div className="pt-4 border-t border-neutral-700">
                 {user ? (
                   <div className="space-y-3">
