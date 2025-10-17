@@ -10,11 +10,11 @@ import ModalCadastro from "./ModalCadastro";
 export default function Hero() {
   const [isModalAgendamentoOpen, setIsModalAgendamentoOpen] = useState(false);
   const [isModalLoginOpen, setIsModalLoginOpen] = useState(false);
-  const [isModalCadastroOpen, setIsModalCadastroOpen] = useState(false); 
+  const [isModalCadastroOpen, setIsModalCadastroOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // verificaçãousuário logado
+    // verificação usuário logado
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });

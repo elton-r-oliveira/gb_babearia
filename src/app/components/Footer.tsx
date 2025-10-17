@@ -7,7 +7,6 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
 
-                    {/* Coluna 1 - Sobre */}
                     <div>
                         <h3 className="text-2xl font-bold mb-4 text-yellow-500">GB Barbershop</h3>
                         <p className="text-gray-300 leading-relaxed mb-6">
@@ -29,7 +28,6 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Coluna 2 - Horário */}
                     <div>
                         <h4 className="text-lg font-semibold mb-4 text-white">
                             Horário de Funcionamento
@@ -46,7 +44,6 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Coluna 3 - Contato */}
                     <div>
                         <h4 className="text-lg font-semibold mb-4 text-white">Contato</h4>
                         <ul className="text-gray-300 space-y-2">
@@ -66,7 +63,6 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Linha divisória */}
                 <div className="border-t border-neutral-800 mt-12 pt-8 text-center">
                     <p className="text-gray-400 text-sm">
                         © 2025 GB Barbershop. Todos os direitos reservados.

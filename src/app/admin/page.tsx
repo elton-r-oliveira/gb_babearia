@@ -1,4 +1,3 @@
-// app/admin/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,19 +5,7 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, getDocs, orderBy, query, where, deleteDoc, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
-import {
-    CalendarIcon,
-    UserIcon,
-    ScissorsIcon,
-    ClockIcon,
-    CurrencyDollarIcon,
-    TrashIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    PhoneIcon,
-    FunnelIcon,
-    PlusIcon
-} from "@heroicons/react/24/outline";
+import { CalendarIcon, UserIcon, ScissorsIcon, ClockIcon, CurrencyDollarIcon, TrashIcon, CheckCircleIcon, XCircleIcon, PhoneIcon, FunnelIcon, PlusIcon } from "@heroicons/react/24/outline";
 import ModalAgendamento from "@/app/components/ModalAgendamento"
 
 interface Agendamento {
@@ -48,8 +35,9 @@ export default function AdminPage() {
     const [mostrarFiltroAvancado, setMostrarFiltroAvancado] = useState(false);
     const [mostrarModalServico, setMostrarModalServico] = useState(false);
     const [mostrarModalAgendamento, setMostrarModalAgendamento] = useState(false);
+    const [verificandoAdmin, setVerificandoAdmin] = useState(true);
 
-    // Estados para o formulário de serviço presencial
+    // formulário para cadastro de serviço presencial
     const [novoServico, setNovoServico] = useState({
         nomeCliente: "",
         emailCliente: "",
@@ -62,7 +50,6 @@ export default function AdminPage() {
 
     const [cadastrandoServico, setCadastrandoServico] = useState(false);
 
-    // Lista de serviços disponíveis
     const servicosDisponiveis = [
         {
             id: "corte-cabelo",
@@ -105,6 +92,7 @@ export default function AdminPage() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setUser(user);
+            setVerificandoAdmin(true);
 
             if (user) {
                 try {
@@ -117,17 +105,18 @@ export default function AdminPage() {
                     setIsAdmin(data.isAdmin);
 
                     if (data.isAdmin) {
-                        carregarAgendamentos();
-                    } else {
-                        setLoading(false);
+                        await carregarAgendamentos();
                     }
                 } catch (err) {
                     console.error("Erro ao verificar admin:", err);
                     setIsAdmin(false);
+                } finally {
+                    setVerificandoAdmin(false);
                     setLoading(false);
                 }
             } else {
                 setIsAdmin(false);
+                setVerificandoAdmin(false);
                 setLoading(false);
             }
         });
@@ -185,7 +174,6 @@ export default function AdminPage() {
                 criadoEm: serverTimestamp(),
             });
 
-            // Limpa o formulário e recarrega a lista
             setNovoServico({
                 nomeCliente: "",
                 emailCliente: "",
@@ -207,7 +195,6 @@ export default function AdminPage() {
         }
     };
 
-    // Função para selecionar serviço pré-definido
     const selecionarServicoPredefinido = (servico: any) => {
         setNovoServico({
             ...novoServico,
@@ -257,7 +244,6 @@ export default function AdminPage() {
         return telefone;
     };
 
-    // Função para formatar telefone no input
     const formatarTelefoneInput = (telefone: string) => {
         const numeros = telefone.replace(/\D/g, '');
 
@@ -275,43 +261,37 @@ export default function AdminPage() {
         return telefone;
     };
 
-    // Função para extrair valor numérico do preço
     const extrairValorNumerico = (preco: string): number => {
         const valor = preco.replace(/[^\d,]/g, '').replace(',', '.');
         return parseFloat(valor) || 0;
     };
 
-    // Função para criar data no início do dia (00:00:00) - CORRIGIDA
     const criarDataInicio = (dataString: string): Date => {
         // Usando UTC para evitar problemas de fuso horário
         const [year, month, day] = dataString.split('-').map(Number);
         return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
     };
 
-    // Função para criar data no final do dia (23:59:59.999) - CORRIGIDA
     const criarDataFim = (dataString: string): Date => {
-        // Usando UTC para evitar problemas de fuso horário
         const [year, month, day] = dataString.split('-').map(Number);
-        return new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+        return new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
     };
 
-    // Calcular totais
+    // função que calcula os totais filtrando periodos e status
     const calcularTotais = () => {
         const hoje = new Date();
-        // Normalizar hoje para início do dia (local time)
         const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0, 0);
         const fimHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59, 999);
+
+        const umaSemanaAtras = new Date(inicioHoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const trintaDiasAtras = new Date(inicioHoje.getTime() - 30 * 24 * 60 * 60 * 1000);
 
         const mesAtual = hoje.getMonth();
         const anoAtual = hoje.getFullYear();
 
-        // Calcular períodos relativos
-        const umaSemanaAtras = new Date(inicioHoje.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const trintaDiasAtras = new Date(inicioHoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-
         let agendamentosFiltrados = agendamentos;
 
-        // Aplicar filtro de período
+        // filtros de período
         if (filtroPeriodo !== "todos") {
             agendamentosFiltrados = agendamentos.filter(ag => {
                 const dataAgendamento = ag.dataHora;
@@ -335,16 +315,6 @@ export default function AdminPage() {
                         if (dataInicio && dataFim) {
                             const inicio = criarDataInicio(dataInicio);
                             const fim = criarDataFim(dataFim);
-
-                            console.log('=== FILTRO PERSONALIZADO ===');
-                            console.log('Data Início (input):', dataInicio);
-                            console.log('Data Fim (input):', dataFim);
-                            console.log('Início (UTC):', inicio.toISOString());
-                            console.log('Fim (UTC):', fim.toISOString());
-                            console.log('Data Agendamento:', dataAgendamento.toISOString());
-                            console.log('Dentro do período?', dataAgendamento >= inicio && dataAgendamento <= fim);
-                            console.log('============================');
-
                             return dataAgendamento >= inicio && dataAgendamento <= fim;
                         }
                         return true;
@@ -355,20 +325,18 @@ export default function AdminPage() {
             });
         }
 
-        // Aplicar filtro de status
+        // filtro de status
         if (filtroStatus !== "todos") {
             agendamentosFiltrados = agendamentosFiltrados.filter(ag => ag.status === filtroStatus);
         }
 
-        // Calcular totais
+        // calculo dos totais ignorando o cancelados da soma
         const total = agendamentosFiltrados.length;
         const pendentes = agendamentosFiltrados.filter(a => a.status === "pendente").length;
         const confirmados = agendamentosFiltrados.filter(a => a.status === "confirmado").length;
         const concluidos = agendamentosFiltrados.filter(a => a.status === "concluido").length;
-
-        // Calcular valor total
         const valorTotal = agendamentosFiltrados
-            .filter(a => a.status !== "cancelado") // Não incluir cancelados no valor total
+            .filter(a => a.status !== "cancelado")
             .reduce((total, ag) => total + extrairValorNumerico(ag.preco), 0);
 
         return {
@@ -406,7 +374,6 @@ export default function AdminPage() {
         }
     };
 
-    // Resetar filtros personalizados quando mudar o período
     useEffect(() => {
         if (filtroPeriodo !== "personalizado") {
             setDataInicio("");
@@ -420,7 +387,16 @@ export default function AdminPage() {
         setDataInicio("");
         setDataFim("");
     };
-
+    if (loading || verificandoAdmin) {
+        return (
+            <div className="min-h-screen bg-neutral-900 text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+                    <p className="text-gray-300">Carregando Painel Administrativo</p>
+                </div>
+            </div>
+        );
+    }
     if (!user) {
         return (
             <div className="min-h-screen bg-neutral-900 text-white flex items-center justify-center">
