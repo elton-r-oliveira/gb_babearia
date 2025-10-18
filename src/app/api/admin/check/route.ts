@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 
-const ADMIN_EMAILS = ["elton@gmail.com", "admin@gbbarbershop.com"];
+const ADMIN_EMAILS = ["barbearia@email.com"];
 
 export async function GET(request: NextRequest) {
   try {
