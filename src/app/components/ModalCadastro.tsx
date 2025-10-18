@@ -169,12 +169,12 @@ export default function ModalCadastro({ isOpen, onClose, onSwitchToLogin, onCada
             </label>
             <input
               type="password"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full p-3 rounded bg-neutral-700 text-white border border-neutral-600 focus:border-yellow-500 focus:outline-none transition-colors"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
